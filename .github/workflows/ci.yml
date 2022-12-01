@@ -8,27 +8,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  env_prepare:
+  build:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
+
       - name: Prepare
-        run: |
-          ./scripts/prepare.sh
+        run: ./scripts/prepare.sh
 
-  build_rootfs:
-    runs-on: ubuntu-22.04
-    needs: env_prepare
-    steps:
       - name: Build rootfs
-        run: |
-          ./scripts/buildrootfs.sh
+        run: ./scripts/buildrootfs.sh
 
-  build_kernel:
-    runs-on: ubuntu-22.04
-    needs: env_prepare
-    steps:
       - name: Build Linux kernel
-        run: |
-          ./scripts/buildkernel.sh
+        run: ./scripts/buildkernel.sh
 
