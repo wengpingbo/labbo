@@ -8,25 +8,27 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  env_prepare:
     runs-on: ubuntu-22.04
-
     steps:
       - uses: actions/checkout@v3
-
-      - name: Clone source codes
+      - name: Prepare
         run: |
-          git clone https://git.buildroot.net/buildroot
-          git clone https://github.com/torvalds/linux.git
-          pwd
-          ls -l
+          ./scripts/prepare.sh
 
-      - name: Install Dependency
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y make gcc g++ unzip git bc python device-tree-compiler mtd-utils
-
+  build_rootfs:
+    runs-on: ubuntu-22.04
+    needs: env_prepare
+    steps:
       - name: Build rootfs
         run: |
-          echo Add other actions to build,
+          ./scripts/buildrootfs.sh
+
+  build_kernel:
+    runs-on: ubuntu-22.04
+    needs: env_prepare
+    steps:
+      - name: Build Linux kernel
+        run: |
+          ./scripts/buildkernel.sh
 
