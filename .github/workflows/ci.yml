@@ -13,6 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Cache
+        uses: actions/cache@v3.0.11
+        with:
+          key: ${{ runner.os }}
+          path: |
+            ${GITHUB_WORKSPACE}/toolchain
+            ${GITHUB_WORKSPACE}/buildroot/dl
+
       - name: Prepare
         run: ./scripts/prepare.sh
 
@@ -22,3 +30,11 @@ jobs:
       - name: Build Linux kernel
         run: ./scripts/buildkernel.sh
 
+      - name: Build Linux kernel
+        run: ./scripts/buildkernel.sh
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3.1.1
+        with:
+          path: |
+            ${GITHUB_WORKSPACE}/toolchain
