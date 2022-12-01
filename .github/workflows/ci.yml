@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Clone source codes
+      - uses: actions/checkout@v3
+        run: |
+          git clone https://git.buildroot.net/buildroot
+          git clone https://github.com/torvalds/linux.git
+          pwd
+          ls -l
+
+      - name: Install Dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make gcc g++ unzip git bc python device-tree-compiler mtd-utils
+
+      - name: Build rootfs
+        run: |
+          echo Add other actions to build,
+
