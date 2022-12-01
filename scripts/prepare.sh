@@ -13,5 +13,4 @@ curl -L https://developer.arm.com/-/media/Files/downloads/gnu/11.3.rel1/binrel/a
 cd ${GITHUB_WORKSPACE}/toolchain
 tar xf arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 echo "${GITHUB_WORKSPACE}/toolchain/arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin" >> ${GITHUB_PATH}
-aarch64-none-linux-gnu-gcc -v
 
