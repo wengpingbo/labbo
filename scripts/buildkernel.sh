@@ -3,7 +3,7 @@
 set -e
 
 aarch64-none-linux-gnu-gcc -v
-git clone https://github.com/torvalds/linux.git ${GITHUB_WORKSPACE}
+git clone https://github.com/torvalds/linux.git ${GITHUB_WORKSPACE}/linux
 cat configs/linux_kernel_defconfig >> ${GITHUB_WORKSPACE}/linux/arch/arm64/configs/defconfig
 cd ${GITHUB_WORKSPACE}/linux
 make ARCH=arm64 defconfig
