@@ -26,24 +26,15 @@ jobs:
 
       - name: Build rootfs
         run: |
-          git clone https://git.buildroot.net/buildroot ${GITHUB_WORKSPACE}/buildroot
-          cp -v configs/buildroot_aarch64_defconfig ${GITHUB_WORKSPACE}/buildroot/configs/labbo_defconfig
-          cd ${GITHUB_WORKSPACE}/buildroot
-          git checkout origin/2022.08.x
-          make ARCH=arm64 labbo_defconfig
-          make ARCH=arm64 -j
+          sudo ./scripts/rootfs_ubuntu-base.sh ${GITHUB_WORKSPACE}
 
       - name: Build Linux kernel
         run: |
-          git clone https://github.com/torvalds/linux.git ${GITHUB_WORKSPACE}/linux
-          cat configs/linux_kernel_defconfig >> ${GITHUB_WORKSPACE}/linux/arch/arm64/configs/defconfig
-          cd ${GITHUB_WORKSPACE}/linux
-          make ARCH=arm64 defconfig
-          make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- -j
+          echo "place holder"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3.1.1
         with:
           path: |
-            ${GITHUB_WORKSPACE}/toolchain
+            /opt/fw
 

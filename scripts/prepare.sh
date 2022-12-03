@@ -4,7 +4,7 @@ set -e
 
 echo "install dependencies"
 sudo apt update
-sudo apt install -y make gcc g++ git bc
+sudo apt install -y make gcc g++ git bc qemu qemu-utils qemu-user-static binfmt-support
 
 echo "download toolchain"
 mkdir -pv ${GITHUB_WORKSPACE}/toolchain
@@ -14,3 +14,4 @@ cd ${GITHUB_WORKSPACE}/toolchain
 tar xf arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
 echo "${GITHUB_WORKSPACE}/toolchain/arm-gnu-toolchain-11.3.rel1-x86_64-aarch64-none-linux-gnu/bin" >> ${GITHUB_PATH}
 
+mkdir -pv /opt/fw
