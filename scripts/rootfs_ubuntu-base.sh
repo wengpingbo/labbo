@@ -70,6 +70,7 @@ EOF
 mount --make-private ${TDIR}
 umount -R ${TDIR}
 
-gzip -c ${ROOTDIR}/ubuntu/ubuntu-base.img > /opt/fw/ubuntu-base.img.gz
-
+mkdir -pv ${ROOTDIR}/rootfs
+mv ${ROOTDIR}/ubuntu/ubuntu-base.img ${ROOTDIR}/rootfs
+rm -rf ${ROOTDIR}/ubuntu
 

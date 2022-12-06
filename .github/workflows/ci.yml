@@ -13,28 +13,40 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Cache
-        uses: actions/cache@v3.0.11
-        with:
-          key: ${{ runner.os }}
-          path: |
-            ${GITHUB_WORKSPACE}/toolchain
-            ${GITHUB_WORKSPACE}/buildroot/dl
+      - name: Docker Setup QEMU
+        uses: docker/setup-qemu-action@v2.1.0
+
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v2.2.1
 
       - name: Prepare
-        run: ./scripts/prepare.sh
+        run: ./scripts/prepare.sh ${{ github.workspace }}/..
 
       - name: Build rootfs
         run: |
-          sudo ./scripts/rootfs_ubuntu-base.sh ${GITHUB_WORKSPACE}
+          sudo ./scripts/rootfs_ubuntu-base.sh ${{ github.workspace }}/..
+          ls -la ${{ github.workspace }}
+          ls -la ${{ github.workspace }}/..
 
-      - name: Build Linux kernel
-        run: |
-          echo "place holder"
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3.1.1
+      - name: Docker Login
+        uses: docker/login-action@v2.1.0
         with:
-          path: |
-            /opt/fw
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Generate App Version
+        run: |
+          echo APP_VERSION=`git describe --tags --always` >> $GITHUB_ENV
+          echo APP_NAME=labbo >> $GITHUB_ENV
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3.2.0
+        with:
+          push: true
+          context: ${{ github.workspace }}/..
+          file: ${{ github.workspace }}/Dockerfile
+          build-args: |
+            APP_NAME=${{ env.APP_NAME }}
+            APP_VERSION=${{ env.APP_VERSION }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.APP_NAME }}:${{ env.APP_VERSION }}
 
