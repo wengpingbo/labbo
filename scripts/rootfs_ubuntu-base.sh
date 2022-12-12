@@ -8,9 +8,11 @@ cd ${ROOTDIR}/ubuntu
 TDIR=${ROOTDIR}/ubuntu/mnt
 
 curl -L https://cdimage.ubuntu.com/ubuntu-base/releases/22.04.1/release/ubuntu-base-22.04.1-base-arm64.tar.gz -o ubuntu-base-22.04.1-base-arm64.tar.gz
-qemu-img create -f raw ubuntu-base.img 10G
-mkfs.ext4 ubuntu-base.img
-mount ubuntu-base.img ${TDIR}
+qemu-img create -f qcow2 ubuntu-base.img 10G
+modprobe nbd max_part=8
+qemu-nbd --connect=/dev/nbd0 ubuntu-base.img
+mkfs.ext4 /dev/nbd0
+mount /dev/nbd0 ${TDIR}
 tar xf ubuntu-base-22.04.1-base-arm64.tar.gz -C ${TDIR}
 
 # setup dns
@@ -69,6 +71,7 @@ EOF
 
 mount --make-private ${TDIR}
 umount -R ${TDIR}
+qemu-nbd --disconnect /dev/nbd0
 
 mkdir -pv ${ROOTDIR}/rootfs
 mv ${ROOTDIR}/ubuntu/ubuntu-base.img ${ROOTDIR}/rootfs
