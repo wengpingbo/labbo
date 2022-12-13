@@ -1,4 +1,21 @@
 #!/bin/sh
 
-docker run -v $1:/root/host -h labbo -w /root -it echowpb/labbo /bin/bash
+SHARE_DIR=""
+[ -e $1 ] && SHARE_DIR="$1"
+
+docker ps -a -f name=labbo | grep -q labbo
+if [ $? -ne 0 ]; then
+	echo "Container labbo not exist, creating with share dir $SHARE_DIR ..."
+	share_cmds=""
+	[ -e "$SHARE_DIR" ] && share_cmds="-v $SHARE_DIR:/root/host"
+	docker run $share_cmds -h labbo --name labbo -w /root -td echowpb/labbo:latest /bin/bash
+else
+	status=`docker container inspect labbo | grep Status | awk -F ':' '{print $2}' | tr -d '", '`
+	if [ "$status" != "running" ]; then
+		echo "Container labbo not running, starting..."
+		docker start labbo
+	fi
+fi
+
+docker exec -it labbo /bin/bash
 

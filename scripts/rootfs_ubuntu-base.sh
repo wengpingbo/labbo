@@ -7,13 +7,14 @@ mkdir -pv ${ROOTDIR}/ubuntu/mnt
 cd ${ROOTDIR}/ubuntu
 TDIR=${ROOTDIR}/ubuntu/mnt
 
-curl -L https://cdimage.ubuntu.com/ubuntu-base/releases/22.04.1/release/ubuntu-base-22.04.1-base-arm64.tar.gz -o ubuntu-base-22.04.1-base-arm64.tar.gz
+#curl -L https://cdimage.ubuntu.com/ubuntu-base/releases/22.04.1/release/ubuntu-base-22.04.1-base-arm64.tar.gz -o ubuntu-base-arm64.tar.gz
+curl -L https://cdimage.ubuntu.com/ubuntu-base/releases/20.04.5/release/ubuntu-base-20.04.5-base-arm64.tar.gz -o ubuntu-base-arm64.tar.gz
 qemu-img create -f qcow2 ubuntu-base.img 10G
 modprobe nbd max_part=8
 qemu-nbd --connect=/dev/nbd0 ubuntu-base.img
 mkfs.ext4 /dev/nbd0
 mount /dev/nbd0 ${TDIR}
-tar xf ubuntu-base-22.04.1-base-arm64.tar.gz -C ${TDIR}
+tar xf ubuntu-base-arm64.tar.gz -C ${TDIR}
 
 # setup dns
 cat << EOF | chroot ${TDIR}
@@ -49,19 +50,19 @@ echo auto eth0 > /etc/network/interfaces.d/eth0
 echo iface eth0 inet dhcp >> /etc/network/interfaces.d/eth0
 
 # setup hostname
-echo labbo > /etc/hostname
+echo labbo-arm64 > /etc/hostname
 echo 127.0.0.1 localhost >> /etc/hosts
-echo 127.0.1.1 labbo >> /etc/hosts
+echo 127.0.1.1 labbo-arm64 >> /etc/hosts
 
 # auto mount host share directory
-echo "host0   /share    9p      trans=virtio,version=9p2000.L   0 0" >> /etc/fstab
+echo "host0   /share    9p      trans=virtio,msize=512k,multidevs=remap   0 0" >> /etc/fstab
 
 # custom welcome message
 cat << MEND > /etc/motd
 
 ===============================================================
 
-Enter labbo system, default username/password: ubuntu/ubuntu
+Enter labbo-arm64 system, default username/password: ubuntu/ubuntu
 
 ===============================================================
 
