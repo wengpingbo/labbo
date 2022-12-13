@@ -33,7 +33,7 @@ apt install -y ssh sudo ifupdown net-tools ethtool systemd vim
 
 # add system user
 useradd -s '/bin/bash' -m -G adm,sudo ubuntu
-echo ubuntu | passwd --stdin ubuntu
+echo ubuntu:ubuntu | chpasswd
 
 # fix "Timed out waiting for device ttyAMA0" errors
 ln -s /lib/systemd/system/getty@.service /etc/systemd/system/getty.target.wants/getty@ttyAMA0.service

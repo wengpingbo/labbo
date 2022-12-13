@@ -1,0 +1,4 @@
+#!/bin/sh
+
+docker run -v $1:/root/host -h labbo -w /root -it echowpb/labbo /bin/bash
+
