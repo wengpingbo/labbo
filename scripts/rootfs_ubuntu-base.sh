@@ -36,7 +36,7 @@ useradd -s '/bin/bash' -m -G adm,sudo ubuntu
 echo ubuntu:ubuntu | chpasswd
 
 # fix "Timed out waiting for device ttyAMA0" errors
-ln -s /lib/systemd/system/getty@.service /etc/systemd/system/getty.target.wants/getty@ttyAMA0.service
+ln -sv /lib/systemd/system/getty@.service /etc/systemd/system/getty.target.wants/getty@ttyAMA0.service
 
 # fix 'agetty --noclear' not work
 sed -i 's/TTYVTDisallocate=yes/TTYVTDisallocate=no/' /lib/systemd/system/getty@.service
@@ -66,6 +66,7 @@ Enter labbo system, default username/password: ubuntu/ubuntu
 ===============================================================
 
 MEND
+sync
 exit
 EOF
 
