@@ -20,7 +20,7 @@ jobs:
         uses: docker/setup-buildx-action@v2.2.1
 
       - name: Prepare
-        run: ./scripts/prepare.sh ${{ github.workspace }}
+        run: ./scripts/prepare.sh ${{ github.workspace }}/..
 
       - name: Build rootfs
         run: |

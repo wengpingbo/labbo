@@ -1,0 +1,52 @@
+system.cpu cortexa57
+system.port localhost:1234
+system.gdbconfig gdbserver off
+;system.config corenumber 4
+;core.assign 1 2 3 4
+
+; Disable interrupts in debug mode.
+; Set to off to debug interrupt routines
+SYStem.Option IMASKASM ON
+SYStem.Option IMASKHLL ON
+
+SYStem.Option MMUSPACES ON     ; enable space ids to virtual addresses
+
+;PRINT "Select your Linux kernel source path, say 'No' if no source"
+;LOCAL &srcpath
+;DIALOG.DIR
+;ENTRY %LINE &srcpath
+
+PRINT "Choose your vmlinux symbol file"
+LOCAL &vmlinuxpath
+DIALOG.File.open vmlinux
+ENTRY %LINE &vmlinuxpath
+
+; Finally attach to the target
+SYStem.Mode Attach
+
+IF STATE.RUN()
+  Break.direct
+
+; Load the Linux kernel symbols into the debugger
+; use /strippart and /path to map source paths, if necessary
+PRINT "loading Linux kernel symbols..."
+SYStem.Option ZONESPACES ON
+Data.LOAD.Elf &vmlinuxpath N:0x0 /NoCODE ;/strippart "" /PATH "&srcpath"
+
+WinPOS 0.0 0.0 75. 23. 24. 1. W001
+WinTABS 10. 10. 25. 62.
+List.Auto ;Open source code window
+
+WinPOS 80.5 17.5 52. 20. 0. 0. W002
+Register.view /SpotLight ;Open register window
+
+WinPOS 0.0 29.7 41. 6. 5. 0. W003
+Frame.view /Locals /Caller ;Open the stack frame
+
+WinPOS 46.8 29.7 28. 6. 0. 0. W004
+Var.Watch linux_banner ;Add variables to watch
+
+WinPOS 80.5 0.0 52. 12. 0. 0. W005
+PER.view ;Show clearly arranged
+
+ENDDO
