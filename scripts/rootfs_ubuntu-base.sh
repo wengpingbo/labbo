@@ -3,18 +3,23 @@
 set -e
 
 ROOTDIR="$1"
+ARCH="$2"
 mkdir -pv ${ROOTDIR}/ubuntu/mnt
 cd ${ROOTDIR}/ubuntu
 TDIR=${ROOTDIR}/ubuntu/mnt
 
-#curl -L https://cdimage.ubuntu.com/ubuntu-base/releases/22.04.1/release/ubuntu-base-22.04.1-base-arm64.tar.gz -o ubuntu-base-arm64.tar.gz
-curl -L https://cdimage.ubuntu.com/ubuntu-base/releases/20.04.5/release/ubuntu-base-20.04.5-base-arm64.tar.gz -o ubuntu-base-arm64.tar.gz
-qemu-img create -f qcow2 ubuntu-base.img 10G
+qemu-img create -f qcow2 ubuntu-base-${ARCH}.img 10G
 modprobe nbd max_part=8
-qemu-nbd --connect=/dev/nbd0 ubuntu-base.img
+qemu-nbd --connect=/dev/nbd0 ubuntu-base-${ARCH}.img
 mkfs.ext4 /dev/nbd0
 mount /dev/nbd0 ${TDIR}
-tar xf ubuntu-base-arm64.tar.gz -C ${TDIR}
+
+if [ "$ARCH" = "arm64" ]; then
+	curl -L https://cdimage.ubuntu.com/ubuntu-base/releases/20.04.5/release/ubuntu-base-20.04.5-base-arm64.tar.gz -o ubuntu-base.tar.gz
+elif [ "$ARCH" = "arm" ]; then
+	curl -L https://cdimage.ubuntu.com/ubuntu-base/releases/20.04.5/release/ubuntu-base-20.04.5-base-armhf.tar.gz -o ubuntu-base.tar.gz
+fi
+tar xf ubuntu-base.tar.gz -C ${TDIR}
 
 # setup dns
 cat << EOF | chroot ${TDIR}
@@ -50,9 +55,9 @@ echo auto eth0 > /etc/network/interfaces.d/eth0
 echo iface eth0 inet dhcp >> /etc/network/interfaces.d/eth0
 
 # setup hostname
-echo labbo-arm64 > /etc/hostname
+echo labbo-$ARCH > /etc/hostname
 echo 127.0.0.1 localhost >> /etc/hosts
-echo 127.0.1.1 labbo-arm64 >> /etc/hosts
+echo 127.0.1.1 labbo-$ARCH >> /etc/hosts
 
 # auto mount host share directory
 echo "host0   /share    9p      trans=virtio,msize=512k,multidevs=remap   0 0" >> /etc/fstab
@@ -62,7 +67,7 @@ cat << MEND > /etc/motd
 
 ===============================================================
 
-Enter labbo-arm64 system, default username/password: ubuntu/ubuntu
+Enter labbo-$ARCH system, default username/password: ubuntu/ubuntu
 
 ===============================================================
 
@@ -76,6 +81,6 @@ umount -R ${TDIR}
 qemu-nbd --disconnect /dev/nbd0
 
 mkdir -pv ${ROOTDIR}/rootfs
-mv ${ROOTDIR}/ubuntu/ubuntu-base.img ${ROOTDIR}/rootfs
+mv ${ROOTDIR}/ubuntu/ubuntu-base-${ARCH}.img ${ROOTDIR}/rootfs
 rm -rf ${ROOTDIR}/ubuntu
 

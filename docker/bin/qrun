@@ -1,7 +1,11 @@
 #!/bin/sh
 
+ARCH=`basename $0`
+[ "$ARCH" = "qrun" ] && echo "Please use 'qrunarm' or 'qrunarm64'" && exit 1
+ARCH=${ARCH:4} # remove fisrt 4 chars
+
 KERNEL_IMG="$1"
-ROOTFS="/root/labbo/rootfs/ubuntu-base.img"
+ROOTFS="/root/labbo/rootfs/ubuntu-base-${ARCH}.img"
 HOSTDIR="/root"
 
 GDB_MODE=0
@@ -16,8 +20,14 @@ for interf in $iflist; do
 	[ $? -eq 0 ] && NETDEV=$interf && break
 done
 
+if [ "$ARCH" = "arm64" ];then
+	QEMU_CMD="qemu-system-aarch64 -machine virt -cpu cortex-a57 -smp 4 -m 2g"
+elif [ "$ARCH" = "arm64" ];then
+	QEMU_CMD="qemu-system-arm -machine type=vexpress-a15 -cpu cortex-a15 -smp 4 -m 2g"
+fi
+
 EXTRA_CMDS=""
 [ $GDB_MODE -eq 1 ] && EXTRA_CMDS="$EXTRA_CMDS -s"
 
-qemu-system-aarch64 -machine virt -cpu cortex-a57 -smp 4 -m 2g -kernel ${KERNEL_IMG} -hda ${ROOTFS} -append "root=/dev/vda rw console=ttyAMA0 nokaslr" -netdev user,id=${NETDEV},hostfwd=tcp::8765-:22 -device e1000,netdev=${NETDEV} -virtfs local,path=${HOSTDIR},mount_tag=host0,id=host0,security_model=passthrough -daemonize -serial tcp:localhost:54320,server,nowait -display none $EXTRA_CMDS
+$QEMU_CMD -kernel ${KERNEL_IMG} -hda ${ROOTFS} -append "root=/dev/vda rw console=ttyAMA0 nokaslr" -netdev user,id=${NETDEV},hostfwd=tcp::8765-:22 -device e1000,netdev=${NETDEV} -virtfs local,path=${HOSTDIR},mount_tag=host0,id=host0,security_model=passthrough -daemonize -serial tcp:localhost:54320,server,nowait -display none $EXTRA_CMDS
 

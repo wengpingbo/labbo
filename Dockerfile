@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
 COPY labbo /root/labbo
-COPY toolchain /root/labbo
+COPY toolchain /root/labbo/toolchain
 RUN apt update && apt install -y qemu qemu-utils qemu-user-static binfmt-support && \
     apt install -y vim net-tools ethtool ssh git wget curl telnet iputils-ping && \
     apt install -y qemu-system-aarch64 qemu-system-arm && \

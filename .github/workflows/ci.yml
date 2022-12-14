@@ -24,7 +24,8 @@ jobs:
 
       - name: Build rootfs
         run: |
-          sudo ./scripts/rootfs_ubuntu-base.sh ${{ github.workspace }}
+          sudo ./scripts/rootfs_ubuntu-base.sh ${{ github.workspace }} arm64
+          sudo ./scripts/rootfs_ubuntu-base.sh ${{ github.workspace }} arm
           ls -la ${{ github.workspace }}
           ls -la ${{ github.workspace }}/..
 
