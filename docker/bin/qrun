@@ -2,9 +2,15 @@
 
 ARCH=`basename $0`
 [ "$ARCH" = "qrun" ] && echo "Please use 'qrunarm' or 'qrunarm64'" && exit 1
-ARCH=${ARCH:4} # remove fisrt 4 chars
+ARCH=`echo $ARCH | sed 's/qrun//'`
 
-KERNEL_IMG="$1"
+if [ "$ARCH" = "arm64" ];then
+	KERNEL_IMG="/root/labbo/docker/default_kernel/Image.gz"
+elif [ "$ARCH" = "arm" ];then
+	KERNEL_IMG="/root/labbo/docker/default_kernel/zImage"
+fi
+[ -f "$1" ] && KERNEL_IMG="$1"
+
 ROOTFS="/root/labbo/rootfs/ubuntu-base-${ARCH}.img"
 HOSTDIR="/root"
 
@@ -21,13 +27,33 @@ for interf in $iflist; do
 done
 
 if [ "$ARCH" = "arm64" ];then
-	QEMU_CMD="qemu-system-aarch64 -machine virt -cpu cortex-a57 -smp 4 -m 2g"
-elif [ "$ARCH" = "arm64" ];then
-	QEMU_CMD="qemu-system-arm -machine type=vexpress-a15 -cpu cortex-a15 -smp 4 -m 2g"
+	QEMU_CMD="qemu-system-aarch64 -machine virt -cpu cortex-a57 -smp 2 -m 1g"
+elif [ "$ARCH" = "arm" ];then
+	QEMU_CMD="qemu-system-arm -machine virt -cpu cortex-a15 -smp 2 -m 1g"
 fi
 
-EXTRA_CMDS=""
-[ $GDB_MODE -eq 1 ] && EXTRA_CMDS="$EXTRA_CMDS -s"
+# load kernel image
+QEMU_CMD="$QEMU_CMD -kernel ${KERNEL_IMG}"
+# setup kernel cmdline
+QEMU_CMD="$QEMU_CMD -append \"root=/dev/vda rw console=ttyAMA0 nokaslr\""
+# load rootfs image
+# Don't use -hda here, qemu arm virt board don't recognize it
+QEMU_CMD="$QEMU_CMD -drive if=none,file=${ROOTFS},format=qcow2,id=hd -device virtio-blk-device,drive=hd"
+# setup network
+QEMU_CMD="$QEMU_CMD -netdev user,id=${NETDEV},hostfwd=tcp::8765-:22 -device virtio-net-device,netdev=${NETDEV}"
+# setup share folder
+# Don't use -virtfs, qemu arm virt board don't support virtio-9p-pci device
+QEMU_CMD="$QEMU_CMD -fsdev local,path=${HOSTDIR},id=host0,security_model=passthrough -device virtio-9p-device,fsdev=host0,mount_tag=host0"
+# setup serial console
+QEMU_CMD="$QEMU_CMD -serial telnet:localhost:54320,server,nowait"
+# misc setup
+QEMU_CMD="$QEMU_CMD -daemonize -display none"
 
-$QEMU_CMD -kernel ${KERNEL_IMG} -hda ${ROOTFS} -append "root=/dev/vda rw console=ttyAMA0 nokaslr" -netdev user,id=${NETDEV},hostfwd=tcp::8765-:22 -device e1000,netdev=${NETDEV} -virtfs local,path=${HOSTDIR},mount_tag=host0,id=host0,security_model=passthrough -daemonize -serial tcp:localhost:54320,server,nowait -display none $EXTRA_CMDS
+# gdb setup
+QEMU_CMD="$QEMU_CMD -s"
+# need wait gdb at startup ?
+[ $GDB_MODE -eq 1 ] && QEMU_CMD="$QEMU_CMD -S"
+
+# here we go
+eval $QEMU_CMD
 

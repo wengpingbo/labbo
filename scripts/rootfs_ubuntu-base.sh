@@ -35,11 +35,12 @@ mount --bind /dev/pts ${TDIR}/dev/pts
 mount -o bind /etc/resolv.conf ${TDIR}/etc/resolv.conf
 cat << EOF | chroot ${TDIR}
 apt update
-apt install -y ssh sudo ifupdown net-tools ethtool systemd vim
+apt install -y ssh sudo ifupdown net-tools ethtool systemd vim cron
 
 # add system user
 useradd -s '/bin/bash' -m -G adm,sudo ubuntu
 echo ubuntu:ubuntu | chpasswd
+echo "ubuntu ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # fix "Timed out waiting for device ttyAMA0" errors
 ln -sv /lib/systemd/system/getty@.service /etc/systemd/system/getty.target.wants/getty@ttyAMA0.service
@@ -61,6 +62,7 @@ echo 127.0.1.1 labbo-$ARCH >> /etc/hosts
 
 # auto mount host share directory
 echo "host0   /share    9p      trans=virtio,msize=512k,multidevs=remap   0 0" >> /etc/fstab
+echo "@reboot chmod 777 /share" >> /etc/crontab
 
 # custom welcome message
 cat << MEND > /etc/motd
